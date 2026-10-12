@@ -10,7 +10,7 @@ before it, are identical to the ones built from the full data.
 import numpy as np
 import pandas as pd
 
-from main import HOUR, LONG_ALERT, LOOKBACK, build_grid, load_alerts, origin_features, rows
+from main import DAY, K, LONG_ALERT, LOOKBACK, SLOT, build_grid, load_alerts, origin_features, rows
 
 
 def known_at(alerts, at):
@@ -25,13 +25,13 @@ def main():
     f = origin_features(g)
     T = g["Y"].shape[1]
     checked = 0
-    for c in np.random.default_rng(0).integers(LOOKBACK + 48, T - 24, 25):
-        at = g["start"] + int(c) * HOUR
+    for c in np.random.default_rng(0).integers(LOOKBACK + 2 * DAY, T - K, 25):
+        at = g["start"] + int(c) * SLOT
         if ((alerts.start < at) & (alerts.end > at) & (alerts.end - alerts.start > LONG_ALERT)).any():
             continue  # the >12h cleaning rule uses hindsight by design (see README)
         g2 = build_grid(known_at(alerts, at), end=g["end"])
         f2 = origin_features(g2)
-        origins = np.arange(c - 48, c + 1)
+        origins = np.arange(c - 2 * DAY, c + 1)
         X1, _ = rows(g, f, origins, live=True)
         X2, _ = rows(g2, f2, origins, live=True)
         pd.testing.assert_frame_equal(X1, X2)
