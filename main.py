@@ -32,7 +32,7 @@ DATA_FILE = ROOT / "data" / "volunteer_data_en.csv"
 WEATHER_FILE = ROOT / "data" / "weather.json"
 REPORT = ROOT / "report.html"
 TZ = "Europe/Kyiv"
-SLOT_MIN = 60             # grid step in minutes: the target is "any alert in this slot"
+SLOT_MIN = 30             # grid step in minutes: the target is "any alert in this slot"
 SLOT = pd.Timedelta(minutes=SLOT_MIN)
 SLOT_NAME = "hour" if SLOT_MIN == 60 else f"{SLOT_MIN}-minute slot"
 PER_H = 60 // SLOT_MIN    # slots per hour
@@ -234,7 +234,7 @@ def rows(g, f, origins, live=False, feats=FEATURES):
 
 def fit(g, f, train_end, feats=FEATURES):
     """Train on origins in the 6 months before train_end whose target slot is < train_end."""
-    # ponytail: an origin every 2nd hour; same validation Brier (0.1798 vs 0.1797), half the fit time
+    # ponytail: an origin every 2nd hour; same validation Brier on the hourly grid (0.1798 vs 0.1797), half the fit time
     origins = np.arange(max(train_end - TRAIN, LOOKBACK), train_end, 2 * PER_H)
     X, m = rows(g, f, origins, feats=feats)
     keep = m.h < train_end
